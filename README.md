@@ -83,7 +83,7 @@ The site never links directly to the Sheet (so entries can't be copied),
 but it does two payment-related things:
 
 - A welcome popup on first visit, plus a persistent card in the hero, both
-  pointing people at Revolut (`revolut.me/steviemac`) and a "Pay on PayPal"
+  pointing people at Revolut (`revolut.me/steviemc`) and a "Pay on PayPal"
   button that copies an email address to the clipboard rather than linking
   a `paypal.me` alias, since one may not exist. Update the Revolut handle
   and `PAYPAL_EMAIL` in `app.js`, and the two payment links/buttons in
