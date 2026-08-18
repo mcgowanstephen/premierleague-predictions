@@ -28,6 +28,17 @@ const PROMOTED_TEAMS = ['Coventry', 'Hull', 'Ipswich Town'];
 
 const SEASON = '2026/27';
 
+// The actual final 2025/26 table, used to power the "last season" info-dot
+// tooltips on the league table. Verified against multiple independent
+// sources; positions 8-16 are internally consistent across sources but
+// weren't confirmed against a single primary table — see README.
+const LAST_YEAR_TABLE = [
+  'Arsenal', 'Man City', 'Man United', 'Aston Villa', 'Liverpool',
+  'Bournemouth', 'Sunderland', 'Brighton', 'Brentford', 'Chelsea',
+  'Fulham', 'Newcastle', 'Everton', 'Leeds', 'Crystal Palace',
+  'Nottm Forest', 'Tottenham', 'West Ham', 'Burnley', 'Wolves',
+];
+
 const TEAM_SELECT_IDS = [
   'christmasDayTop', 'boxingDayBottom', 'bestGoalDifference',
   'firstTo10Points', 'mostPenaltiesAwarded', 'lastUndefeatedTeam',
@@ -125,6 +136,14 @@ function zoneForPosition(pos) {
   return 'mid';
 }
 
+function lastYearWindow(pos) {
+  const lines = [];
+  for (let p = Math.max(1, pos - 1); p <= Math.min(20, pos + 1); p++) {
+    lines.push(`${p}. ${LAST_YEAR_TABLE[p - 1]}`);
+  }
+  return `2025/26:\n${lines.join('\n')}`;
+}
+
 function buildTeamRow(team) {
   const li = document.createElement('li');
   li.className = 'team-row';
@@ -132,6 +151,7 @@ function buildTeamRow(team) {
 
   li.innerHTML = `
     <span class="pos-badge" data-role="badge">0</span>
+    <button type="button" class="info-dot" data-role="info" aria-label="Show 2025/26 result near this position">i</button>
     <span class="drag-handle" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
     <span class="team-name">${team}</span>
     <span class="row-actions">
@@ -160,6 +180,8 @@ function refreshPositions() {
     const badge = row.querySelector('[data-role="badge"]');
     badge.textContent = String(pos);
     badge.className = `pos-badge zone-${zone}`;
+
+    row.querySelector('[data-role="info"]').dataset.tooltip = lastYearWindow(pos);
 
     const upBtn = row.querySelector('[data-action="up"]');
     const downBtn = row.querySelector('[data-action="down"]');

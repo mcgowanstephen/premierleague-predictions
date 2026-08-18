@@ -290,6 +290,64 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
 }
 
 .field.is-invalid input, .field.is-invalid select { border-color: var(--danger); }
+
+/* ---------- Info-dot "last season" tooltips ---------- */
+
+.info-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-size: .66rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  font-style: italic;
+  line-height: 1;
+  padding: 0;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.info-dot:hover, .info-dot:focus-visible {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  outline: none;
+}
+.info-dot::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  transform: translateY(4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: .78rem;
+  font-weight: 500;
+  font-style: normal;
+  white-space: pre-line;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 20;
+  text-align: left;
+  line-height: 1.35;
+}
+.info-dot:hover::after, .info-dot:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
 .field-error { font-size: .78rem; color: var(--danger); min-height: 1em; display: block; }
 .field-hint { font-size: .78rem; color: var(--text-muted); }
 
