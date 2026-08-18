@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premier League Predictions 2025/26</title>
+<meta name="description" content="Predict the 2025/26 Premier League table and bonus categories, and go head to head with your mates.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%233D195B'/%3E%3Cpath d='M50 20 L64 30 L58 47 L42 47 L36 30 Z' fill='%23fff'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <div class="brand">
+      <span class="brand__crest" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+          <path d="M12 2l7 4v6c0 5-3.2 8.4-7 10-3.8-1.6-7-5-7-10V6l7-4z" fill="url(#g)"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#E90052"/><stop offset="1" stop-color="#04F5FF"/></linearGradient></defs>
+        </svg>
+      </span>
+      <div class="brand__text">
+        <span class="brand__title">Predictions League</span>
+        <span class="brand__season">2025/26 Season</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <a id="dashboard-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19h16M6 15V9m6 6V5m6 10v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        View Dashboard
+      </a>
+      <button type="button" id="theme-toggle" class="btn btn--icon-only" aria-label="Toggle light and dark theme">
+        <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" hidden><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="progress-wrap" aria-hidden="true">
+    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero">
+    <h1>Call your shots for 2025/26.</h1>
+    <p>Drag the table into your predicted final order, lock in your bonus predictions, and submit before a ball is kicked. Bragging rights are on the line.</p>
+    <div class="hero__stats" id="completion-stat">
+      <span class="hero__stats-value" id="completion-value">0%</span>
+      <span class="hero__stats-label">of your prediction complete</span>
+    </div>
+  </section>
+
+  <form id="predictions-form" novalidate>
+
+    <!-- Honeypot field — hidden from real users, bots often fill every input -->
+    <div class="honeypot" aria-hidden="true">
+      <label for="website">Leave this field blank</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <section class="card section" id="section-name">
+      <div class="section__header">
+        <span class="section__index">01</span>
+        <div>
+          <h2>Who's predicting?</h2>
+          <p class="section__hint">So we know whose bragging rights are whose.</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="predictorName">Your name <span class="required">*</span></label>
+        <input type="text" id="predictorName" name="predictorName" maxlength="60" placeholder="e.g. Stephen" required>
+        <span class="field-error" id="err-predictorName"></span>
+      </div>
+    </section>
+
+    <section class="card section" id="section-table">
+      <div class="section__header">
+        <span class="section__index">02</span>
+        <div>
+          <h2>Predict the final table</h2>
+          <p class="section__hint">Drag &amp; drop teams into your predicted 1st&ndash;20th finish. On mobile, press and hold to drag, or use the arrow buttons.</p>
+        </div>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="legend">
+          <span class="legend__item"><i class="legend__swatch zone-cl"></i>Champions League</span>
+          <span class="legend__item"><i class="legend__swatch zone-el"></i>Europe</span>
+          <span class="legend__item"><i class="legend__swatch zone-rel"></i>Relegation</span>
+        </div>
+        <div class="table-toolbar__buttons">
+          <button type="button" class="btn btn--ghost btn--small" id="btn-alphabetical">A&ndash;Z reset</button>
+          <button type="button" class="btn btn--ghost btn--small" id="btn-shuffle">Shuffle</button>
+        </div>
+      </div>
+
+      <ol id="league-list" class="league-list"></ol>
+    </section>
+
+    <section class="card section" id="section-bonus">
+      <div class="section__header">
+        <span class="section__index">03</span>
+        <div>
+          <h2>Bonus predictions</h2>
+          <p class="section__hint">The categories that decide it on tiebreaks.</p>
+        </div>
+      </div>
+
+      <h3 class="group-title">Players &amp; awards</h3>
+      <div class="field-grid">
+        <div class="field">
+          <label for="topGoalscorer">Top Goalscorer <span class="required">*</span></label>
+          <input type="text" id="topGoalscorer" maxlength="60" placeholder="e.g. Erling Haaland" required>
+          <span class="field-error" id="err-topGoalscorer"></span>
+        </div>
+        <div class="field">
+          <label for="mostAssists">Most Assists <span class="required">*</span></label>
+          <input type="text" id="mostAssists" maxlength="60" placeholder="Player name" required>
+          <span class="field-error" id="err-mostAssists"></span>
+        </div>
+        <div class="field">
+          <label for="mostYellowCards">Most Yellow Cards <span class="required">*</span></label>
+          <input type="text" id="mostYellowCards" maxlength="60" placeholder="Player name" required>
+          <span class="field-error" id="err-mostYellowCards"></span>
+        </div>
+        <div class="field">
+          <label for="mostRedCards">Most Red Cards <span class="required">*</span></label>
+          <input type="text" id="mostRedCards" maxlength="60" placeholder="Player name" required>
+          <span class="field-error" id="err-mostRedCards"></span>
+        </div>
+        <div class="field">
+          <label for="mostCleanSheets">Most Clean Sheets <span class="required">*</span></label>
+          <input type="text" id="mostCleanSheets" maxlength="60" placeholder="Player name" required>
+          <span class="field-error" id="err-mostCleanSheets"></span>
+        </div>
+        <div class="field">
+          <label for="playerOfTheYear">Player of the Year <span class="required">*</span></label>
+          <input type="text" id="playerOfTheYear" maxlength="60" placeholder="Player name" required>
+          <span class="field-error" id="err-playerOfTheYear"></span>
+        </div>
+        <div class="field">
+          <label for="managerOfTheYear">Manager of the Year <span class="required">*</span></label>
+          <input type="text" id="managerOfTheYear" maxlength="60" placeholder="Manager name" required>
+          <span class="field-error" id="err-managerOfTheYear"></span>
+        </div>
+        <div class="field">
+          <label for="firstManagerSacked">First Manager Sacked <span class="required">*</span></label>
+          <input type="text" id="firstManagerSacked" maxlength="60" placeholder="Manager name" required>
+          <span class="field-error" id="err-firstManagerSacked"></span>
+        </div>
+      </div>
+
+      <h3 class="group-title">Table &amp; drama</h3>
+      <div class="field-grid">
+        <div class="field">
+          <label for="christmasDayTop">Top of the League on Christmas Day <span class="required">*</span></label>
+          <select id="christmasDayTop" required></select>
+          <span class="field-error" id="err-christmasDayTop"></span>
+        </div>
+        <div class="field">
+          <label for="boxingDayBottom">Bottom of the League on Boxing Day <span class="required">*</span></label>
+          <select id="boxingDayBottom" required></select>
+          <span class="field-error" id="err-boxingDayBottom"></span>
+        </div>
+        <div class="field">
+          <label for="bestGoalDifference">Best Goal Difference <span class="required">*</span></label>
+          <select id="bestGoalDifference" required></select>
+          <span class="field-error" id="err-bestGoalDifference"></span>
+        </div>
+        <div class="field">
+          <label for="firstTo10Points">First Team to Reach 10 Points <span class="required">*</span></label>
+          <select id="firstTo10Points" required></select>
+          <span class="field-error" id="err-firstTo10Points"></span>
+        </div>
+        <div class="field">
+          <label for="mostPenaltiesAwarded">Most Penalties Awarded <span class="required">*</span></label>
+          <select id="mostPenaltiesAwarded" required></select>
+          <span class="field-error" id="err-mostPenaltiesAwarded"></span>
+        </div>
+        <div class="field">
+          <label for="lastUndefeatedTeam">Last Remaining Undefeated Team <span class="required">*</span></label>
+          <select id="lastUndefeatedTeam" required></select>
+          <span class="field-error" id="err-lastUndefeatedTeam"></span>
+        </div>
+        <div class="field">
+          <label for="highestScoringPromotedTeam">Highest Scoring Promoted Team <span class="required">*</span></label>
+          <select id="highestScoringPromotedTeam" required></select>
+          <span class="field-error" id="err-highestScoringPromotedTeam"></span>
+        </div>
+        <div class="field">
+          <label for="survivalLinePoints">Points for 17th Place / Survival Line <span class="required">*</span></label>
+          <input type="number" id="survivalLinePoints" min="15" max="50" step="1" placeholder="e.g. 34" required>
+          <span class="field-hint">Between 15 and 50 points.</span>
+          <span class="field-error" id="err-survivalLinePoints"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card section" id="section-review">
+      <div class="section__header">
+        <span class="section__index">04</span>
+        <div>
+          <h2>Review &amp; submit</h2>
+          <p class="section__hint">Warnings below won't stop your submission &mdash; they're just us looking out for you.</p>
+        </div>
+      </div>
+
+      <div id="warnings-panel" class="warnings-panel" hidden></div>
+
+      <button type="submit" id="submit-btn" class="btn btn--primary btn--large" disabled>
+        <span class="btn__label">Lock in my predictions</span>
+        <span class="btn__spinner" hidden></span>
+      </button>
+      <p class="submit-hint" id="submit-hint">Complete every field above to unlock submission.</p>
+    </section>
+
+  </form>
+
+  <section id="success-screen" class="success-screen" hidden>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+    <div class="success-card">
+      <div class="success-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2>You're on the board, <span id="success-name">mate</span>.</h2>
+      <p>Your predictions are locked in and saved to the sheet. No takebacks now.</p>
+      <p class="success-pick"><strong>Predicted champions:</strong> <span id="success-champion">&mdash;</span></p>
+      <div class="success-actions">
+        <a id="success-dashboard-link" class="btn btn--ghost" href="#" target="_blank" rel="noopener">View Dashboard</a>
+        <button type="button" id="btn-reset" class="btn btn--primary">Make another prediction</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<footer class="site-footer">
+  <p>Built for mates, not for money. Good luck. &mdash; Predictions League, 2025/26.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
+<script src="app.js"></script>
+</body>
+</html>
