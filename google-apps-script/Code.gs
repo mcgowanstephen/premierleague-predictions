@@ -27,7 +27,7 @@ const COLUMNS = [
   'Top Goalscorer', 'Most Assists', 'Most Yellow Cards', 'Most Red Cards',
   'Most Clean Sheets', 'Player of the Year', 'Manager of the Year',
   'First Manager Sacked', 'Top on Christmas Day', 'Boxing Day Bottom Team',
-  'Best Goal Difference', 'First Team to 20 Points', 'Most Penalties Awarded',
+  'Best Goal Difference', 'First Team to 20 Points',
   'Last Undefeated Team', 'Survival Line Points (17th)',
   'Highest Scoring Promoted Team',
 ];
@@ -99,7 +99,6 @@ function buildRow(data) {
     data.boxingDayBottom || '',
     data.bestGoalDifference || '',
     data.firstTo20Points || '',
-    data.mostPenaltiesAwarded || '',
     data.lastUndefeatedTeam || '',
     data.survivalLinePoints || '',
     data.highestScoringPromotedTeam || '',

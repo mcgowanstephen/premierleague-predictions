@@ -40,7 +40,7 @@ const LAST_YEAR_TABLE = [
 
 const TEAM_SELECT_IDS = [
   'christmasDayTop', 'boxingDayBottom', 'bestGoalDifference',
-  'firstTo20Points', 'mostPenaltiesAwarded', 'lastUndefeatedTeam',
+  'firstTo20Points', 'lastUndefeatedTeam',
 ];
 
 const REQUIRED_TEXT_IDS = [
@@ -481,7 +481,6 @@ function buildPayload() {
     boxingDayBottom: val('boxingDayBottom'),
     bestGoalDifference: val('bestGoalDifference'),
     firstTo20Points: val('firstTo20Points'),
-    mostPenaltiesAwarded: val('mostPenaltiesAwarded'),
     lastUndefeatedTeam: val('lastUndefeatedTeam'),
     survivalLinePoints: Number(val('survivalLinePoints')),
     highestScoringPromotedTeam: val('highestScoringPromotedTeam'),
