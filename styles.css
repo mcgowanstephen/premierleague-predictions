@@ -115,15 +115,6 @@ p { color: var(--text-secondary); }
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand__crest {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-}
 .brand__text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand__title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; }
 .brand__season {
@@ -198,8 +189,20 @@ p { color: var(--text-secondary); }
 main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
 
 .hero { padding: 28px 4px 32px; animation: rise .6s ease both; }
-.hero h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin-bottom: 10px; }
+.hero h1 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin-bottom: 14px; }
 .hero p { max-width: 56ch; }
+
+.rules-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: .92rem;
+}
+.rules-list a { color: var(--accent-2); }
 .hero__stats {
   margin-top: 18px;
   display: inline-flex;

@@ -1,4 +1,4 @@
-# Premier League Predictions — 2025/26
+# Premier League Predictions — 2026/27
 
 A single-page prediction form for a mates' Premier League competition. Drag
 the 20 teams into a predicted final table, fill in bonus categories, and

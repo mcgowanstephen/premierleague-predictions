@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Premier League Predictions 2025/26</title>
-<meta name="description" content="Predict the 2025/26 Premier League table and bonus categories, and go head to head with your mates.">
+<title>Premier League Predictions 2026/27</title>
+<meta name="description" content="Predict the 2026/27 Premier League table and bonus categories, and go head to head with your mates.">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%233D195B'/%3E%3Cpath d='M50 20 L64 30 L58 47 L42 47 L36 30 Z' fill='%23fff'/%3E%3C/svg%3E">
 
@@ -21,15 +21,9 @@
 <header class="site-header">
   <div class="site-header__inner">
     <div class="brand">
-      <span class="brand__crest" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
-          <path d="M12 2l7 4v6c0 5-3.2 8.4-7 10-3.8-1.6-7-5-7-10V6l7-4z" fill="url(#g)"/>
-          <defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#E90052"/><stop offset="1" stop-color="#04F5FF"/></linearGradient></defs>
-        </svg>
-      </span>
       <div class="brand__text">
         <span class="brand__title">Predictions League</span>
-        <span class="brand__season">2025/26 Season</span>
+        <span class="brand__season">2026/27 Season</span>
       </div>
     </div>
 
@@ -53,8 +47,15 @@
 <main id="main">
 
   <section class="hero">
-    <h1>Call your shots for 2025/26.</h1>
-    <p>Drag the table into your predicted final order, lock in your bonus predictions, and submit before a ball is kicked. Bragging rights are on the line.</p>
+    <h1>2026/27 Predictions</h1>
+    <ul class="rules-list">
+      <li>1 point per correct answer.</li>
+      <li>1 bonus point for 1st, 2nd, 3rd, 18th, 19th, 20th.</li>
+      <li>1 bonus point for first team to change manager.</li>
+      <li>&euro;20 pp.</li>
+      <li>File locked Friday 21 August @ 18:45.</li>
+      <li>Stats taken from <a href="https://www.premierleague.com" target="_blank" rel="noopener">premierleague.com</a>.</li>
+    </ul>
     <div class="hero__stats" id="completion-stat">
       <span class="hero__stats-value" id="completion-value">0%</span>
       <span class="hero__stats-label">of your prediction complete</span>
@@ -79,7 +80,7 @@
       </div>
       <div class="field">
         <label for="predictorName">Your name <span class="required">*</span></label>
-        <input type="text" id="predictorName" name="predictorName" maxlength="60" placeholder="e.g. Stephen" required>
+        <input type="text" id="predictorName" name="predictorName" maxlength="60" placeholder="Forename Surname" required>
         <span class="field-error" id="err-predictorName"></span>
       </div>
     </section>
@@ -121,7 +122,7 @@
       <div class="field-grid">
         <div class="field">
           <label for="topGoalscorer">Top Goalscorer <span class="required">*</span></label>
-          <input type="text" id="topGoalscorer" maxlength="60" placeholder="e.g. Erling Haaland" required>
+          <input type="text" id="topGoalscorer" maxlength="60" placeholder="Player name" required>
           <span class="field-error" id="err-topGoalscorer"></span>
         </div>
         <div class="field">
@@ -141,7 +142,7 @@
         </div>
         <div class="field">
           <label for="mostCleanSheets">Most Clean Sheets <span class="required">*</span></label>
-          <input type="text" id="mostCleanSheets" maxlength="60" placeholder="Player name" required>
+          <input type="text" id="mostCleanSheets" maxlength="60" placeholder="Goalkeeper name" required>
           <span class="field-error" id="err-mostCleanSheets"></span>
         </div>
         <div class="field">
@@ -200,8 +201,7 @@
         </div>
         <div class="field">
           <label for="survivalLinePoints">Points for 17th Place / Survival Line <span class="required">*</span></label>
-          <input type="number" id="survivalLinePoints" min="15" max="50" step="1" placeholder="e.g. 34" required>
-          <span class="field-hint">Between 15 and 50 points.</span>
+          <input type="number" id="survivalLinePoints" min="0" step="1" placeholder="e.g. 34" required>
           <span class="field-error" id="err-survivalLinePoints"></span>
         </div>
       </div>
@@ -248,7 +248,7 @@
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
 <footer class="site-footer">
-  <p>Built for mates, not for money. Good luck. &mdash; Predictions League, 2025/26.</p>
+  <p>Built for mates, not for money. Good luck. &mdash; Predictions League, 2026/27.</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>

@@ -18,15 +18,15 @@ const CONFIG = {
    Data
    ========================================================================== */
 const TEAMS = [
-  'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton', 'Burnley',
-  'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Leeds', 'Liverpool',
-  'Man City', 'Man United', 'Newcastle', 'Nottm Forest', 'Sunderland',
-  'Tottenham', 'West Ham', 'Wolves',
+  'Bournemouth', 'Arsenal', 'Aston Villa', 'Brentford', 'Brighton', 'Chelsea',
+  'Coventry', 'Crystal Palace', 'Everton', 'Fulham', 'Hull', 'Ipswich Town',
+  'Leeds', 'Liverpool', 'Man City', 'Man United', 'Newcastle', 'Nottm Forest',
+  'Sunderland', 'Tottenham',
 ];
 
-const PROMOTED_TEAMS = ['Burnley', 'Leeds', 'Sunderland'];
+const PROMOTED_TEAMS = ['Coventry', 'Hull', 'Ipswich Town'];
 
-const SEASON = '2025/26';
+const SEASON = '2026/27';
 
 const TEAM_SELECT_IDS = [
   'christmasDayTop', 'boxingDayBottom', 'bestGoalDifference',
@@ -88,11 +88,7 @@ function applyTheme(theme) {
   } else {
     link.href = '#';
     link.setAttribute('aria-disabled', 'true');
-    link.title = 'Dashboard link not configured yet — see CONFIG.SHEET_VIEW_URL in app.js';
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      showToast('The dashboard link hasn’t been set up yet — nudge whoever owns the sheet.', 'warning');
-    });
+    link.title = 'Dashboard link not configured yet';
   }
 });
 
@@ -219,7 +215,7 @@ leagueList.addEventListener('click', (e) => {
 });
 
 document.getElementById('btn-alphabetical').addEventListener('click', () => {
-  renderLeagueList([...TEAMS]);
+  renderLeagueList([...TEAMS].sort((a, b) => a.localeCompare(b)));
   evaluateWarnings();
 });
 
@@ -410,14 +406,15 @@ function computeValidity() {
     setFieldValid(id, isValid);
   });
 
-  // Survival line points: integer between 15 and 50.
+  // Survival line points: any non-negative whole number — this is a guess at
+  // 17th place's actual points total, not bounded to a fixed range.
   totalCount++;
   const survivalRaw = val('survivalLinePoints');
   const survivalNum = Number(survivalRaw);
-  const survivalValid = survivalRaw !== '' && Number.isInteger(survivalNum) && survivalNum >= 15 && survivalNum <= 50;
+  const survivalValid = survivalRaw !== '' && Number.isInteger(survivalNum) && survivalNum >= 0;
   if (survivalValid) filledCount++;
   else allValid = false;
-  setFieldValid('survivalLinePoints', survivalValid, 'Enter a whole number between 15 and 50.');
+  setFieldValid('survivalLinePoints', survivalValid, 'Enter a whole number of points.');
 
   const percent = Math.round((filledCount / totalCount) * 100);
   progressBar.style.width = `${percent}%`;
