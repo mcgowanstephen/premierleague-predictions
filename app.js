@@ -29,9 +29,8 @@ const PROMOTED_TEAMS = ['Coventry', 'Hull', 'Ipswich Town'];
 const SEASON = '2026/27';
 
 // The actual final 2025/26 table, used to power the "last season" info-dot
-// tooltips on the league table. Verified against multiple independent
-// sources; positions 8-16 are internally consistent across sources but
-// weren't confirmed against a single primary table — see README.
+// tooltips on the league table. Computed directly from a full match-by-match
+// results dataset for the season (all 380 fixtures), so this is exact.
 const LAST_YEAR_TABLE = [
   'Arsenal', 'Man City', 'Man United', 'Aston Villa', 'Liverpool',
   'Bournemouth', 'Sunderland', 'Brighton', 'Brentford', 'Chelsea',
@@ -41,7 +40,7 @@ const LAST_YEAR_TABLE = [
 
 const TEAM_SELECT_IDS = [
   'christmasDayTop', 'boxingDayBottom', 'bestGoalDifference',
-  'firstTo10Points', 'mostPenaltiesAwarded', 'lastUndefeatedTeam',
+  'firstTo20Points', 'mostPenaltiesAwarded', 'lastUndefeatedTeam',
 ];
 
 const REQUIRED_TEXT_IDS = [
@@ -481,7 +480,7 @@ function buildPayload() {
     christmasDayTop: val('christmasDayTop'),
     boxingDayBottom: val('boxingDayBottom'),
     bestGoalDifference: val('bestGoalDifference'),
-    firstTo10Points: val('firstTo10Points'),
+    firstTo20Points: val('firstTo20Points'),
     mostPenaltiesAwarded: val('mostPenaltiesAwarded'),
     lastUndefeatedTeam: val('lastUndefeatedTeam'),
     survivalLinePoints: Number(val('survivalLinePoints')),
