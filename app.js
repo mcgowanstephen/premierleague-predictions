@@ -7,11 +7,11 @@
 const CONFIG = {
   // Paste the deployed Google Apps Script Web App URL here, e.g.
   // "https://script.google.com/macros/s/AKfycb.../exec"
-  SCRIPT_URL: '',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzlc9fUrqLud6k4h0jPUqiYuU8jlEEOBcd1t0DWvaQVfaDbpBlUjnVvWp7L8ZNwz97b0w/exec',
 
   // Paste the shareable URL of your Google Sheet here (used for the
   // "View Dashboard" link in the header and on the success screen).
-  SHEET_VIEW_URL: '',
+  SHEET_VIEW_URL: 'https://docs.google.com/spreadsheets/d/1hPuOysPftninKpzSBGaSXFA2h6XyJSuJIUYopiR7sTQ/edit?usp=sharing',
 };
 
 /* ==========================================================================
