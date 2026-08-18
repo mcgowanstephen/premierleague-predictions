@@ -5,8 +5,9 @@ the 20 teams into a predicted final table, fill in bonus categories, and
 submit — predictions are appended as a row in a Google Sheet.
 
 Static HTML/CSS/vanilla JS, no build step, deployable straight to GitHub
-Pages. Drag-and-drop is powered by [SortableJS](https://github.com/SortableJS/Sortable)
-loaded from a CDN.
+Pages. Drag-and-drop is powered by [SortableJS](https://github.com/SortableJS/Sortable),
+loaded from a CDN — if it's ever blocked (offline, ad-blocker, CDN outage),
+the form still fully works via the up/down buttons on each row.
 
 ## Files
 
