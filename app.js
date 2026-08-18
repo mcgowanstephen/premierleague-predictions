@@ -7,12 +7,12 @@
 const CONFIG = {
   // Paste the deployed Google Apps Script Web App URL here, e.g.
   // "https://script.google.com/macros/s/AKfycb.../exec"
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzlc9fUrqLud6k4h0jPUqiYuU8jlEEOBcd1t0DWvaQVfaDbpBlUjnVvWp7L8ZNwz97b0w/exec',
-
-  // Paste the shareable URL of your Google Sheet here (used for the
-  // "View Dashboard" link in the header and on the success screen).
-  SHEET_VIEW_URL: 'https://docs.google.com/spreadsheets/d/1hPuOysPftninKpzSBGaSXFA2h6XyJSuJIUYopiR7sTQ/edit?usp=sharing',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzIc9fUrqLud6k4h0jPUqiYuU8jlEEOBcd1t0DWvaQVfaDbpBlUjnVvWp7L8ZNwz97b0w/exec',
 };
+
+// Entry fee per person — used to compute the "total pot" badge in the
+// header. Keep this in sync with the €20 pp mentioned in the rules list.
+const ENTRY_FEE = 20;
 
 /* ==========================================================================
    Data
@@ -63,8 +63,8 @@ const completionValue = document.getElementById('completion-value');
 const warningsPanel = document.getElementById('warnings-panel');
 const toastContainer = document.getElementById('toast-container');
 const successScreen = document.getElementById('success-screen');
-const dashboardLink = document.getElementById('dashboard-link');
-const successDashboardLink = document.getElementById('success-dashboard-link');
+const potBadge = document.getElementById('pot-badge');
+const potValue = document.getElementById('pot-value');
 
 /* ==========================================================================
    Theme
@@ -89,18 +89,65 @@ function applyTheme(theme) {
 }
 
 /* ==========================================================================
-   Dashboard link wiring
+   PayPal — copies Stephen's email rather than linking a paypal.me alias
+   that may not exist, so this can't rely on a guessed URL.
    ========================================================================== */
-[dashboardLink, successDashboardLink].forEach((link) => {
-  if (!link) return;
-  if (CONFIG.SHEET_VIEW_URL) {
-    link.href = CONFIG.SHEET_VIEW_URL;
-  } else {
-    link.href = '#';
-    link.setAttribute('aria-disabled', 'true');
-    link.title = 'Dashboard link not configured yet';
-  }
+const PAYPAL_EMAIL = 'stephenmcgowanmcc@gmail.com';
+
+document.querySelectorAll('.paypal-copy-btn').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(PAYPAL_EMAIL);
+      showToast(`Copied ${PAYPAL_EMAIL} — send via PayPal (Friends & Family).`, 'success');
+    } catch (err) {
+      showToast(`Couldn't copy automatically — PayPal email is ${PAYPAL_EMAIL}`, 'warning');
+    }
+  });
 });
+
+/* ==========================================================================
+   Welcome / payment modal
+   ========================================================================== */
+(function initWelcomeModal() {
+  const modal = document.getElementById('welcome-modal');
+  const dismissBtn = document.getElementById('welcome-dismiss');
+  const reopenBtn = document.getElementById('show-payment-info');
+  if (!modal || !dismissBtn) return;
+
+  function show() { modal.hidden = false; }
+  function dismiss() {
+    modal.hidden = true;
+    localStorage.setItem('plp-welcome-dismissed', '1');
+  }
+
+  if (!localStorage.getItem('plp-welcome-dismissed')) show();
+
+  dismissBtn.addEventListener('click', dismiss);
+  reopenBtn && reopenBtn.addEventListener('click', show);
+  modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) dismiss(); });
+})();
+
+/* ==========================================================================
+   Total pot badge — reads the entry count from the Apps Script endpoint
+   (GET) without exposing the underlying Sheet.
+   ========================================================================== */
+async function loadPotTotal() {
+  if (!CONFIG.SCRIPT_URL || !potBadge) return;
+  try {
+    const response = await fetch(CONFIG.SCRIPT_URL, { method: 'GET' });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (data && typeof data.entries === 'number') {
+      const pot = data.entries * ENTRY_FEE;
+      potValue.textContent = `€${pot} pot · ${data.entries} in`;
+      potBadge.hidden = false;
+    }
+  } catch (err) {
+    console.warn('Could not load pot total:', err);
+  }
+}
+loadPotTotal();
 
 /* ==========================================================================
    Populate <select> elements with team options
@@ -555,6 +602,7 @@ function showSuccessScreen(payload) {
   document.getElementById('success-champion').textContent = payload.leagueTable[0] || '—';
   launchConfetti();
   successScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  loadPotTotal();
 }
 
 function launchConfetti() {

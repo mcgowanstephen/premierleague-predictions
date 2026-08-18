@@ -42,27 +42,26 @@ No build step is required; the three files at the repo root are served as-is.
    - **Execute as**: Me.
    - **Who has access**: Anyone.
    - Click **Deploy** and copy the generated URL (ends in `/exec`).
-6. Any time you change `Code.gs` later, redeploy (**Deploy > Manage
-   deployments > edit (pencil) > New version**) — editing the script alone
-   does not update the live URL.
+6. Any time you change `Code.gs` later: **Deploy > Manage deployments >
+   pencil icon on the existing deployment > Version: New version > Deploy**.
+   This keeps the same `/exec` URL. Clicking **Deploy > New deployment**
+   again instead gives you a *different* URL, which means updating
+   `CONFIG.SCRIPT_URL` in `app.js` to match — the old URL will start
+   returning 404s once you do that.
 
 ## 3. Wire the frontend to the backend
 
-Open `app.js` and fill in the two values at the top:
+Open `app.js` and fill in the value at the top:
 
 ```js
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycb.../exec',
-  SHEET_VIEW_URL: 'https://docs.google.com/spreadsheets/d/....../edit',
 };
 ```
 
-- `SCRIPT_URL` is the Apps Script Web App URL from step 2.6 above — this is
-  what the form POSTs predictions to.
-- `SHEET_VIEW_URL` is whatever link you want the "View Dashboard" button to
-  open (e.g. the Sheet itself, or a published/read-only view — **File >
-  Share > Publish to web** if you'd rather your mates couldn't edit it
-  directly).
+`SCRIPT_URL` is the Apps Script Web App URL from step 2.6 above — the form
+POSTs predictions to it, and also GETs it on page load to show the total
+pot (see below).
 
 Commit and push the change; GitHub Pages picks it up automatically.
 
@@ -77,6 +76,24 @@ A hidden honeypot field (`website`) provides basic protection against
 automated spam submissions to the public endpoint — real visitors never see
 or fill it in, and any submission with it populated is silently accepted
 without being written to the sheet.
+
+## Payment prompt and total pot
+
+The site never links directly to the Sheet (so entries can't be copied),
+but it does two payment-related things:
+
+- A welcome popup on first visit, plus a persistent card in the hero, both
+  pointing people at Revolut (`revolut.me/steviemac`) and a "Pay on PayPal"
+  button that copies an email address to the clipboard rather than linking
+  a `paypal.me` alias, since one may not exist. Update the Revolut handle
+  and `PAYPAL_EMAIL` in `app.js`, and the two payment links/buttons in
+  `index.html` (in `#welcome-modal` and `.payment-card`), to match your own
+  details.
+- A "total pot" badge in the header, computed as `entries × ENTRY_FEE`
+  (`ENTRY_FEE` is set in `app.js`, currently 20 to match the rules text).
+  It calls `doGet` on the same Apps Script endpoint, which returns just a
+  row count — never the actual predictions — so the pot size is visible
+  without exposing anyone's picks.
 
 ## Customizing
 

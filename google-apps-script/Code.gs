@@ -10,11 +10,15 @@
  *      - Execute as: Me
  *      - Who has access: Anyone
  * 5. Copy the resulting /exec URL into CONFIG.SCRIPT_URL in app.js.
- * 6. Copy the Sheet's own share URL into CONFIG.SHEET_VIEW_URL in app.js.
  *
- * Every time you edit this file and redeploy, choose "New deployment" (or
- * manage deployments > edit > new version) — saving alone does not update
- * the live /exec URL.
+ * UPDATING THE CODE LATER — READ THIS CAREFULLY, it's easy to get wrong:
+ * Saving this file does NOT update the live /exec URL. To ship a change:
+ *   Deploy > Manage deployments > pencil icon on the EXISTING deployment
+ *   > Version: "New version" > Deploy.
+ * This keeps the same /exec URL working. If you instead click "New
+ * deployment" again, you'll get a DIFFERENT /exec URL, and app.js's
+ * CONFIG.SCRIPT_URL will need updating to match (the old URL may stop
+ * resolving, which shows up as a 404 in the browser).
  */
 
 const SHEET_NAME = 'Predictions';
@@ -60,7 +64,13 @@ function doPost(e) {
 }
 
 function doGet() {
-  return jsonResponse({ result: 'ok', message: 'Premier League Predictions endpoint is live.' });
+  try {
+    const sheet = getOrCreateSheet();
+    const entries = Math.max(0, sheet.getLastRow() - 1); // minus header row
+    return jsonResponse({ result: 'ok', entries: entries });
+  } catch (err) {
+    return jsonResponse({ result: 'error', message: err.message });
+  }
 }
 
 function getOrCreateSheet() {
