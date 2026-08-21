@@ -69,6 +69,11 @@ body[data-theme="light"] {
 
 html { scroll-behavior: smooth; }
 
+/* Belt-and-braces: nothing should make the page pan sideways on a phone.
+   Individual wide things (the results grid) scroll inside their own
+   container instead. */
+html, body { overflow-x: hidden; max-width: 100%; }
+
 body {
   margin: 0;
   background:
@@ -337,6 +342,17 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   flex-shrink: 0;
   vertical-align: middle;
 }
+/* Invisible tap target padded out to ~44px without changing the visual
+   size of the dot itself. */
+.info-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
 .info-dot:hover, .info-dot:focus-visible {
   color: var(--accent-2);
   border-color: var(--accent-2);
@@ -346,8 +362,11 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   content: attr(data-tooltip);
   position: absolute;
   bottom: calc(100% + 8px);
-  left: 0;
-  transform: translateY(4px);
+  /* Anchored on the dot's centre and clamped to the viewport, so a tooltip
+     near the right edge can't push the page wider than the screen — that
+     was making the whole page pan sideways on phones. */
+  left: 50%;
+  transform: translate(-50%, 4px);
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   color: var(--text-primary);
@@ -356,7 +375,7 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   font-style: normal;
   white-space: pre-line;
   width: max-content;
-  max-width: 240px;
+  max-width: min(240px, calc(100vw - 32px));
   padding: 8px 10px;
   border-radius: 8px;
   box-shadow: var(--shadow-float);
@@ -367,9 +386,9 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   text-align: left;
   line-height: 1.35;
 }
-.info-dot:hover::after, .info-dot:focus-visible::after {
+.info-dot:hover::after, .info-dot:focus-visible::after, .info-dot:focus::after {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 .field-error { font-size: .78rem; color: var(--danger); min-height: 1em; display: block; }
 .field-hint { font-size: .78rem; color: var(--text-muted); }
@@ -449,6 +468,13 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
 .btn-icon:hover { background: var(--bg-card-hover); color: var(--text-primary); border-color: var(--border); }
 .btn-icon:disabled { opacity: .25; cursor: not-allowed; }
 .btn-icon:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+
+/* Reorder arrows are the primary way to sort the table on a phone, so give
+   them a proper thumb-sized target there. */
+@media (pointer: coarse) {
+  .btn-icon { width: 40px; height: 40px; }
+  .row-actions { gap: 4px; }
+}
 
 .team-row.sortable-ghost { opacity: .35; }
 .team-row.sortable-chosen { border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 18%, transparent); }
@@ -608,9 +634,12 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 34px 30px;
-  max-width: 380px;
-  width: 100%;
+  padding: 30px 24px;
+  width: min(380px, 100%);
+  /* Never taller than the screen — scroll inside instead of pushing the
+     dismiss button out of reach on short viewports. */
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
   text-align: center;
   box-shadow: var(--shadow-float);
   animation: rise .35s cubic-bezier(.2, .8, .2, 1) both;

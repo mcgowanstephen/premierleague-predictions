@@ -23,6 +23,22 @@
 
 const SHEET_NAME = 'Predictions';
 
+/**
+ * The moment entries lock and everyone's picks become readable.
+ * Stored as UTC: 18:45 BST (British Summer Time, UTC+1) on Fri 21 Aug 2026
+ * is 17:45 UTC. Using a fixed UTC instant means the switch happens at the
+ * same real-world moment for everyone, wherever they're viewing from.
+ *
+ * Before this instant: doGet returns only the entry COUNT, so nobody can
+ * read anyone else's picks early. After it: doGet returns every entry, and
+ * doPost stops accepting new submissions.
+ */
+const REVEAL_AT_UTC = '2026-08-21T17:45:00Z';
+
+function isRevealed() {
+  return new Date().getTime() >= new Date(REVEAL_AT_UTC).getTime();
+}
+
 const COLUMNS = [
   'Timestamp', 'Season', 'Predictor Name',
   'Pos 1', 'Pos 2', 'Pos 3', 'Pos 4', 'Pos 5', 'Pos 6', 'Pos 7', 'Pos 8',
@@ -50,6 +66,12 @@ function doPost(e) {
       return jsonResponse({ result: 'success' });
     }
 
+    // Hard lock. The frontend also hides the form after the deadline, but
+    // that's only cosmetic — this is what actually stops a late entry.
+    if (isRevealed()) {
+      throw new Error('Entries closed at 18:45 on Friday 21 August.');
+    }
+
     if (!data.predictorName || !Array.isArray(data.leagueTable) || data.leagueTable.length !== 20) {
       throw new Error('Prediction payload is missing required fields.');
     }
@@ -67,7 +89,24 @@ function doGet() {
   try {
     const sheet = getOrCreateSheet();
     const entries = Math.max(0, sheet.getLastRow() - 1); // minus header row
-    return jsonResponse({ result: 'ok', entries: entries });
+    const revealed = isRevealed();
+
+    const payload = {
+      result: 'ok',
+      entries: entries,
+      revealed: revealed,
+      revealAt: REVEAL_AT_UTC,
+    };
+
+    // Only hand out the actual predictions once entries have locked.
+    if (revealed && entries > 0) {
+      payload.columns = COLUMNS;
+      payload.rows = sheet
+        .getRange(2, 1, entries, COLUMNS.length)
+        .getDisplayValues();
+    }
+
+    return jsonResponse(payload);
   } catch (err) {
     return jsonResponse({ result: 'error', message: err.message });
   }
