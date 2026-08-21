@@ -580,6 +580,135 @@ main { max-width: 780px; margin: 0 auto; padding: 28px 20px 100px; }
   to { transform: translateY(420px) rotate(540deg); opacity: 0; }
 }
 
+/* ---------- Results grid ---------- */
+
+.results-view { animation: rise .5s ease both; }
+
+.results-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.results-header h2 { font-size: 1.3rem; margin-bottom: 4px; }
+.results-summary { font-size: .88rem; margin: 0; }
+
+.results-state {
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .9rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* The grid is the one thing allowed to be wider than the screen — it
+   scrolls inside this container rather than moving the page. */
+.results-scroll {
+  overflow: auto;
+  max-height: 78vh;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  -webkit-overflow-scrolling: touch;
+}
+
+.results-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: .84rem;
+  white-space: nowrap;
+}
+
+.results-table th,
+.results-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: left;
+  background: var(--bg-card);
+}
+
+/* Predictor names across the top */
+.results-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-elevated);
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-strong);
+}
+
+/* Category labels down the left */
+.results-table tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-elevated);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-right: 2px solid var(--border-strong);
+  min-width: 132px;
+}
+
+/* Top-left corner has to outrank both */
+.results-table thead th:first-child {
+  left: 0;
+  z-index: 3;
+  min-width: 132px;
+}
+
+.results-table tbody tr:hover td { background: var(--bg-card-hover); }
+
+.results-table .row-group th {
+  background: var(--bg-elevated);
+  color: var(--accent-2);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.results-table .row-group td { background: var(--bg-elevated); }
+
+.results-table .pos-cell {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  margin-right: 8px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 700;
+  background: var(--border);
+  color: var(--text-secondary);
+}
+.results-table .pos-cell.zone-cl { background: color-mix(in srgb, var(--zone-cl) 25%, transparent); color: #4ade80; }
+.results-table .pos-cell.zone-el { background: color-mix(in srgb, var(--zone-el) 25%, transparent); color: #60a5fa; }
+.results-table .pos-cell.zone-rel { background: color-mix(in srgb, var(--zone-rel) 25%, transparent); color: #f87171; }
+
+.results-table .entry-time {
+  font-size: .72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-family: var(--font-body);
+  display: block;
+  margin-top: 2px;
+}
+
+.results-hint { font-size: .76rem; color: var(--text-muted); margin: 10px 0 0; text-align: center; }
+
+@media (max-width: 560px) {
+  .results-table { font-size: .78rem; }
+  .results-table th, .results-table td { padding: 7px 9px; }
+  .results-table tbody th, .results-table thead th:first-child { min-width: 108px; }
+}
+
 /* ---------- Footer ---------- */
 
 .site-footer { text-align: center; padding: 30px 20px 50px; }

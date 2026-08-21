@@ -14,6 +14,16 @@ const CONFIG = {
 // header. Keep this in sync with the €20 pp mentioned in the rules list.
 const ENTRY_FEE = 20;
 
+// When entries lock and everyone's picks go on show. Must match
+// REVEAL_AT_UTC in google-apps-script/Code.gs — the server is what actually
+// enforces this; the switch here is just the UI following suit.
+// 18:45 BST (UTC+1) on Fri 21 Aug 2026 == 17:45 UTC.
+const REVEAL_AT = new Date('2026-08-21T17:45:00Z');
+
+function isRevealed() {
+  return Date.now() >= REVEAL_AT.getTime();
+}
+
 /* ==========================================================================
    Data
    ========================================================================== */
@@ -120,7 +130,8 @@ document.querySelectorAll('.paypal-copy-btn').forEach((btn) => {
     localStorage.setItem('plp-welcome-dismissed', '1');
   }
 
-  if (!localStorage.getItem('plp-welcome-dismissed')) show();
+  // No point prompting anyone to pay and enter once entries have locked.
+  if (!isRevealed() && !localStorage.getItem('plp-welcome-dismissed')) show();
 
   dismissBtn.addEventListener('click', dismiss);
   reopenBtn && reopenBtn.addEventListener('click', show);
@@ -634,3 +645,171 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   successScreen.hidden = true;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+/* ==========================================================================
+   Results view — after the deadline, the form is replaced by a grid of
+   everyone's entries: categories down the left, predictors across the top,
+   both pinned while you scroll.
+   ========================================================================== */
+const resultsView = document.getElementById('results-view');
+const resultsState = document.getElementById('results-state');
+const resultsScroll = document.getElementById('results-scroll');
+const resultsTable = document.getElementById('results-table');
+const resultsSummary = document.getElementById('results-summary');
+const resultsHint = document.getElementById('results-hint');
+
+// Sheet column indexes: 0 = Timestamp, 1 = Season, 2 = Predictor Name,
+// 3..22 = league positions 1-20, 23+ = the bonus categories in order.
+const TABLE_START = 3;
+const BONUS_START = 23;
+const BONUS_LABELS = [
+  'Top Goalscorer', 'Most Assists', 'Most Yellow Cards', 'Most Red Cards',
+  'Most Clean Sheets', 'Player of the Year', 'Manager of the Year',
+  'First Manager Sacked', 'Top on Christmas Day', 'Boxing Day Bottom',
+  'Best Goal Difference', 'First to 20 Points', 'Last Undefeated',
+  'Survival Line (17th)', 'Highest Scoring Promoted',
+];
+
+function formatEntryTime(raw) {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  const date = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return `${date}, ${time}`;
+}
+
+function renderResultsGrid(rows) {
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+
+  const corner = document.createElement('th');
+  corner.textContent = '';
+  headRow.appendChild(corner);
+
+  rows.forEach((row) => {
+    const th = document.createElement('th');
+    th.textContent = row[2] || '—';
+    const time = formatEntryTime(row[0]);
+    if (time) {
+      const span = document.createElement('span');
+      span.className = 'entry-time';
+      span.textContent = time;
+      th.appendChild(span);
+    }
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+
+  const tbody = document.createElement('tbody');
+
+  function addGroupRow(label) {
+    const tr = document.createElement('tr');
+    tr.className = 'row-group';
+    const th = document.createElement('th');
+    th.textContent = label;
+    tr.appendChild(th);
+    rows.forEach(() => tr.appendChild(document.createElement('td')));
+    tbody.appendChild(tr);
+  }
+
+  function addRow(label, valueFor, posNumber) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.textContent = label;
+    tr.appendChild(th);
+    rows.forEach((row, i) => {
+      const td = document.createElement('td');
+      if (posNumber) {
+        const badge = document.createElement('span');
+        badge.className = `pos-cell zone-${zoneForPosition(posNumber)}`;
+        badge.textContent = String(posNumber);
+        td.appendChild(badge);
+      }
+      td.appendChild(document.createTextNode(valueFor(row, i)));
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+
+  addGroupRow('Final table');
+  for (let pos = 1; pos <= 20; pos++) {
+    addRow(`${pos}${ordinalSuffix(pos)}`, (row) => row[TABLE_START + pos - 1] || '—', pos);
+  }
+
+  addGroupRow('Bonus picks');
+  BONUS_LABELS.forEach((label, i) => {
+    addRow(label, (row) => row[BONUS_START + i] || '—');
+  });
+
+  resultsTable.innerHTML = '';
+  resultsTable.appendChild(thead);
+  resultsTable.appendChild(tbody);
+}
+
+function ordinalSuffix(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return 'th';
+  return ['th', 'st', 'nd', 'rd'][n % 10] || 'th';
+}
+
+async function loadResults() {
+  resultsState.hidden = false;
+  resultsState.textContent = 'Loading entries…';
+  resultsScroll.hidden = true;
+  resultsHint.hidden = true;
+
+  try {
+    const response = await fetch(CONFIG.SCRIPT_URL, { method: 'GET' });
+    if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+    const data = await response.json();
+
+    // The server decides whether picks are readable yet — if it says no,
+    // respect that even if this browser's clock says otherwise.
+    if (!data.revealed) {
+      resultsState.textContent = 'Entries are still locked.';
+      return;
+    }
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    if (!rows.length) {
+      resultsState.textContent = 'No entries were submitted.';
+      resultsSummary.textContent = 'Nothing to show.';
+      return;
+    }
+
+    renderResultsGrid(rows);
+    resultsSummary.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} · €${rows.length * ENTRY_FEE} pot`;
+    resultsState.hidden = true;
+    resultsScroll.hidden = false;
+    resultsHint.hidden = rows.length < 2;
+  } catch (err) {
+    console.error(err);
+    resultsState.textContent = `Couldn’t load entries: ${err.message}`;
+  }
+}
+
+function enterResultsMode() {
+  if (!resultsView.hidden) return; // already showing
+  form.hidden = true;
+  successScreen.hidden = true;
+  document.querySelector('.payment-card').hidden = true;
+  document.getElementById('completion-stat').hidden = true;
+  // If the deadline passes while someone has the payment prompt open,
+  // close it rather than leaving them staring at a dead call to action.
+  document.getElementById('welcome-modal').hidden = true;
+  const paymentInfoBtn = document.getElementById('show-payment-info');
+  if (paymentInfoBtn) paymentInfoBtn.hidden = true;
+  resultsView.hidden = false;
+  loadResults();
+}
+
+document.getElementById('results-refresh').addEventListener('click', loadResults);
+
+// Flip to results at the deadline. Checked on load and on a timer, so a
+// page left open through 18:45 switches over on its own.
+if (isRevealed()) {
+  enterResultsMode();
+} else {
+  setInterval(() => {
+    if (isRevealed()) enterResultsMode();
+  }, 15000);
+}

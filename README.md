@@ -95,6 +95,36 @@ but it does two payment-related things:
   row count — never the actual predictions — so the pot size is visible
   without exposing anyone's picks.
 
+## Entry lock and the results grid
+
+At a fixed moment the site stops taking entries and switches to showing
+everyone's picks. That instant is defined in **two places and they must
+match**:
+
+- `REVEAL_AT_UTC` in `google-apps-script/Code.gs`
+- `REVEAL_AT` in `app.js`
+
+Both are stored as UTC so the switch happens at the same real-world moment
+regardless of where someone is viewing from. Currently
+`2026-08-21T17:45:00Z` — that's 18:45 BST.
+
+The server is the authority, not the browser:
+
+- Before the deadline, `doGet` returns only the entry count. Someone hitting
+  the endpoint directly can't read anyone's picks early.
+- After it, `doGet` returns every row, and `doPost` refuses new
+  submissions — so a late entry is genuinely blocked, not just hidden.
+
+The frontend checks the clock on load and every 15 seconds, so a page left
+open through the deadline flips itself over. If a viewer's clock is wrong
+and the frontend switches early, the server still declines to send the
+picks and the grid shows "Entries are still locked."
+
+The grid puts categories down the left and predictors across the top, both
+pinned while scrolling, with each entry's submission date and time under
+the name. It scrolls inside its own container so the page itself never
+pans sideways on a phone.
+
 ## Customizing
 
 - **Teams**: edit the `TEAMS` and `PROMOTED_TEAMS` arrays at the top of

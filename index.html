@@ -244,6 +244,23 @@
 
   </form>
 
+  <section id="results-view" class="results-view" hidden>
+    <div class="results-header">
+      <div>
+        <h2>Entries are in</h2>
+        <p id="results-summary" class="results-summary">Loading entries&hellip;</p>
+      </div>
+      <button type="button" id="results-refresh" class="btn btn--ghost btn--small">Refresh</button>
+    </div>
+
+    <div id="results-state" class="results-state">Loading entries&hellip;</div>
+
+    <div id="results-scroll" class="results-scroll" hidden>
+      <table id="results-table" class="results-table"></table>
+    </div>
+    <p class="results-hint" id="results-hint" hidden>Scroll sideways to see everyone &mdash; categories and names stay pinned.</p>
+  </section>
+
   <section id="success-screen" class="success-screen" hidden>
     <div class="confetti" id="confetti" aria-hidden="true"></div>
     <div class="success-card">
