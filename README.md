@@ -125,6 +125,49 @@ pinned while scrolling, with each entry's submission date and time under
 the name. It scrolls inside its own container so the page itself never
 pans sideways on a phone.
 
+## Scoring and the leaderboard
+
+Answers live in the Sheet, so you can mark a category as soon as it's
+settled with no code change or redeploy.
+
+**One-time setup** (after pasting the latest `Code.gs` into Apps Script):
+
+1. Run `setupScoring` from the editor toolbar. It creates three tabs:
+   - **Results** — one row per category, named exactly as the Predictions
+     column headers. Type the real answer into **Answer** once it's settled
+     and leave it blank until then. **Also Accept** takes extra correct
+     answers separated by `|` (joint winners, agreed spellings).
+   - **Overrides** — optional. A row (Predictor, Category, Points, Reason)
+     replaces the computed points for that person and category. Use it to
+     settle disputes.
+   - **Scores** — the leaderboard, written by the script. Don't edit it.
+2. Redeploy: **Deploy > Manage deployments > pencil > Version: New version
+   > Deploy** (same `/exec` URL).
+3. Reload the Sheet to get a **Predictions** menu with *Recalculate scores*.
+
+After that, editing **Results** or **Overrides** rebuilds **Scores**
+automatically, and the website recomputes scores on every load.
+
+**Rules** (`BASE_POINTS` / `BONUS_POINTS` in `Code.gs`):
+
+- 1 point per correct answer. For the table, that's a team in its exact
+  position.
+- +1 bonus for an exact 1st, 2nd, 3rd, 18th, 19th or 20th.
+- +1 bonus for First Manager Sacked, so a correct pick is worth 2.
+
+**Matching:** teams and the survival-line number must match exactly
+(ignoring case and spacing). Typed-in names are lenient. The surname has
+to match, and if a first name or initial is given its first letter must
+match too. So for "Michael Carrick", `Carrick`, `M. Carrick` and
+`Micheal Carrick` all count, but `Kieran Carrick` doesn't. A misspelt
+surname won't match. Add it to Also Accept, or use an Override.
+
+**On the site:** a leaderboard sits above the results grid, with joint
+positions sharing a rank. Each name in the grid header shows its points.
+Settled rows show the real answer under the category label. Correct picks
+are green with their points, and wrong picks fade back. If the deployed
+Apps Script predates scoring, the grid simply shows unmarked picks.
+
 ## Customizing
 
 - **Teams**: edit the `TEAMS` and `PROMOTED_TEAMS` arrays at the top of
