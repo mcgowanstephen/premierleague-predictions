@@ -660,6 +660,16 @@ const resultsHint = document.getElementById('results-hint');
 const leaderboard = document.getElementById('leaderboard');
 const leaderboardList = document.getElementById('leaderboard-list');
 const leaderboardSettled = document.getElementById('leaderboard-settled');
+const leaderboardToggle = document.getElementById('leaderboard-toggle');
+
+leaderboardToggle.addEventListener('click', () => {
+  leaderboardExpanded = !leaderboardExpanded;
+  leaderboardList.classList.toggle('is-collapsed', !leaderboardExpanded);
+  leaderboardToggle.textContent = leaderboardExpanded
+    ? 'Show top 5'
+    : `Show all ${leaderboardList.children.length}`;
+  leaderboardToggle.setAttribute('aria-expanded', String(leaderboardExpanded));
+});
 
 // Sheet column indexes: 0 = Timestamp, 1 = Season, 2 = Predictor Name,
 // 3..22 = league positions 1-20, 23+ = the bonus categories in order.
@@ -710,13 +720,43 @@ function buildScoring(data) {
   };
 }
 
+// Shorter team names, swapped in by CSS on narrow screens so more people's
+// columns fit across a phone. Anything not listed shows in full.
+const SHORT_TEAM_NAMES = {
+  'Aston Villa': 'Villa', 'Bournemouth': 'B’mouth', 'Crystal Palace': 'Palace',
+  'Ipswich Town': 'Ipswich', 'Man United': 'Man Utd', 'Newcastle': 'Newcastle',
+  'Nottm Forest': 'Forest', 'Sunderland': 'S’land', 'Tottenham': 'Spurs',
+  'Brentford': 'Brentford', 'Liverpool': 'Liverpool',
+};
+
+function appendCellText(td, value) {
+  const short = SHORT_TEAM_NAMES[value];
+  if (!short || short === value) {
+    td.appendChild(document.createTextNode(value));
+    return;
+  }
+  const full = document.createElement('span');
+  full.className = 'name-full';
+  full.textContent = value;
+  const abbr = document.createElement('span');
+  abbr.className = 'name-short';
+  abbr.textContent = short;
+  abbr.setAttribute('aria-hidden', 'true');
+  td.append(full, abbr);
+}
+
+// With lots of entries the full leaderboard pushes the grid a long way
+// down, so show the top few and let people expand it.
+const LEADERBOARD_PREVIEW = 5;
+let leaderboardExpanded = false;
+
 function renderLeaderboard(rows, scoring) {
   if (!scoring.active) {
     leaderboard.hidden = true;
     return;
   }
   const standings = rows
-    .map((row, i) => ({ name: row[2] || '—', total: scoring.totals[i] || 0 }))
+    .map((row, i) => ({ index: i, name: row[2] || '—', total: scoring.totals[i] || 0 }))
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
 
   leaderboardList.innerHTML = '';
@@ -737,13 +777,106 @@ function renderLeaderboard(rows, scoring) {
     pts.className = 'leaderboard__pts';
     pts.textContent = `${s.total} ${s.total === 1 ? 'pt' : 'pts'}`;
 
-    li.append(rank, name, pts);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'leaderboard__btn';
+    btn.setAttribute('aria-label', `${s.name}, ${pts.textContent}. Show where the points came from.`);
+    btn.addEventListener('click', () => openBreakdown(s.index));
+    btn.append(rank, name, pts);
+    li.appendChild(btn);
     leaderboardList.appendChild(li);
   });
+
+  // Collapse only when it saves a meaningful amount of space.
+  const collapsible = standings.length > LEADERBOARD_PREVIEW + 2;
+  leaderboardList.classList.toggle('is-collapsed', collapsible && !leaderboardExpanded);
+  leaderboardToggle.hidden = !collapsible;
+  leaderboardToggle.textContent = leaderboardExpanded ? 'Show top 5' : `Show all ${standings.length}`;
+  leaderboardToggle.setAttribute('aria-expanded', String(leaderboardExpanded));
 
   leaderboardSettled.textContent = `${scoring.settledCount} of ${scoring.scoredCount} categories settled`;
   leaderboard.hidden = false;
 }
+
+/* --------------------------------------------------------------------------
+   Points breakdown popup — tap a name in the leaderboard or the grid header
+   to see each settled category: their pick, the answer, and the points.
+   -------------------------------------------------------------------------- */
+const breakdownModal = document.getElementById('breakdown-modal');
+const breakdownTitle = document.getElementById('breakdown-title');
+const breakdownTotal = document.getElementById('breakdown-total');
+const breakdownList = document.getElementById('breakdown-list');
+const breakdownPending = document.getElementById('breakdown-pending');
+let currentResults = null; // { rows, scoring } from the last load
+
+// Every scored category in the same order as the grid.
+function scoredCategories() {
+  const list = [];
+  for (let pos = 1; pos <= 20; pos++) {
+    list.push({ label: `${pos}${ordinalSuffix(pos)} place`, col: TABLE_START + pos - 1 });
+  }
+  BONUS_LABELS.forEach((label, i) => list.push({ label, col: BONUS_START + i }));
+  return list;
+}
+
+function openBreakdown(entryIndex) {
+  if (!currentResults) return;
+  const { rows, scoring } = currentResults;
+  const row = rows[entryIndex];
+  const total = scoring.totals[entryIndex] || 0;
+
+  breakdownTitle.textContent = row[2] || '—';
+  breakdownTotal.textContent = `${total} ${total === 1 ? 'point' : 'points'} so far`;
+  breakdownList.innerHTML = '';
+
+  let settled = 0;
+  scoredCategories().forEach(({ label, col }) => {
+    const result = scoring.resultFor(col);
+    const mark = scoring.markFor(entryIndex, col);
+    if (!result || mark === null) return;
+    settled++;
+
+    const li = document.createElement('li');
+    li.className = `breakdown-item ${mark > 0 ? 'is-hit' : 'is-miss'}`;
+
+    const text = document.createElement('div');
+    text.className = 'breakdown-item__text';
+    const cat = document.createElement('span');
+    cat.className = 'breakdown-item__label';
+    cat.textContent = label;
+    const pick = document.createElement('span');
+    pick.className = 'breakdown-item__pick';
+    pick.textContent = `Picked ${row[col] || '—'}`;
+    text.append(cat, pick);
+    if (!(mark > 0)) {
+      const answer = document.createElement('span');
+      answer.className = 'breakdown-item__answer';
+      answer.textContent = `Answer: ${result.answer}`;
+      text.appendChild(answer);
+    }
+
+    const pts = document.createElement('span');
+    pts.className = 'breakdown-item__pts';
+    pts.textContent = mark > 0 ? `+${mark}` : '0';
+
+    li.append(text, pts);
+    breakdownList.appendChild(li);
+  });
+
+  const pending = scoring.scoredCount - settled;
+  breakdownPending.textContent = pending > 0
+    ? `${pending} more ${pending === 1 ? 'category' : 'categories'} still to be decided.`
+    : 'Every category is settled.';
+
+  breakdownModal.hidden = false;
+  document.getElementById('breakdown-close').focus();
+}
+
+function closeBreakdown() { breakdownModal.hidden = true; }
+
+document.getElementById('breakdown-close').addEventListener('click', closeBreakdown);
+breakdownModal.addEventListener('click', (e) => { if (e.target === breakdownModal) closeBreakdown(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !breakdownModal.hidden) closeBreakdown(); });
 
 function renderResultsGrid(rows, scoring) {
   const thead = document.createElement('thead');
@@ -755,7 +888,16 @@ function renderResultsGrid(rows, scoring) {
 
   rows.forEach((row, i) => {
     const th = document.createElement('th');
-    th.textContent = row[2] || '—';
+    if (scoring.active) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'entry-name-btn';
+      btn.textContent = row[2] || '—';
+      btn.addEventListener('click', () => openBreakdown(i));
+      th.appendChild(btn);
+    } else {
+      th.textContent = row[2] || '—';
+    }
     if (scoring.active) {
       const pts = document.createElement('span');
       pts.className = 'entry-points';
@@ -788,6 +930,7 @@ function renderResultsGrid(rows, scoring) {
 
   function addRow(label, col, posNumber) {
     const tr = document.createElement('tr');
+    if (posNumber) tr.className = `pos-row zone-row-${zoneForPosition(posNumber)}`;
     const th = document.createElement('th');
     th.textContent = label;
     const result = scoring.resultFor(col);
@@ -808,7 +951,7 @@ function renderResultsGrid(rows, scoring) {
         badge.textContent = String(posNumber);
         td.appendChild(badge);
       }
-      td.appendChild(document.createTextNode(row[col] || '—'));
+      appendCellText(td, row[col] || '—');
       const mark = scoring.markFor(i, col);
       if (mark !== null) {
         td.classList.add(mark > 0 ? 'cell-hit' : 'cell-miss');
@@ -870,6 +1013,7 @@ async function loadResults() {
     }
 
     const scoring = buildScoring(data);
+    currentResults = { rows, scoring };
     renderLeaderboard(rows, scoring);
     renderResultsGrid(rows, scoring);
     resultsSummary.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} · €${rows.length * ENTRY_FEE} pot`;

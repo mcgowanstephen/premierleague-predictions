@@ -762,12 +762,8 @@ body[data-theme="light"] .results-table .row-answer { color: #15803d; }
   gap: 6px;
 }
 .leaderboard__row {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
   border-radius: var(--radius-sm);
+  overflow: hidden;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
 }
@@ -794,10 +790,52 @@ body[data-theme="light"] .results-table .row-answer { color: #15803d; }
   color: var(--text-primary);
 }
 
+/* Short team names only appear on phones (see below). */
+.results-table .name-short { display: none; }
+
+.leaderboard__list.is-collapsed .leaderboard__row:nth-child(n+6) { display: none; }
+.leaderboard__toggle { margin-top: 10px; width: 100%; justify-content: center; }
+
+/* Phones: fit three or four people across instead of one and a half.
+   - Narrow category column; long labels wrap.
+   - Names and picks wrap instead of stretching the column.
+   - The position badge in every cell goes; the row label already says
+     the position, and a coloured edge on it shows the zone.
+   - Long team names are shortened (Man Utd, Spurs, Palace...). */
 @media (max-width: 560px) {
-  .results-table { font-size: .78rem; }
-  .results-table th, .results-table td { padding: 7px 9px; }
-  .results-table tbody th, .results-table thead th:first-child { min-width: 108px; }
+  .results-table { font-size: .76rem; white-space: normal; }
+  .results-table th, .results-table td { padding: 6px 7px; line-height: 1.25; }
+
+  .results-table tbody th,
+  .results-table thead th:first-child {
+    min-width: 0;
+    width: 72px;
+    max-width: 72px;
+    font-size: .72rem;
+  }
+  .results-table td,
+  .results-table thead th:not(:first-child) {
+    min-width: 74px;
+    max-width: 104px;
+    overflow-wrap: break-word; /* split words only if one can't fit at all */
+  }
+
+  .results-table td .pos-cell { display: none; }
+  .results-table .pos-row th { box-shadow: inset 3px 0 0 var(--row-zone, transparent); }
+  .results-table .zone-row-cl  { --row-zone: var(--zone-cl); }
+  .results-table .zone-row-el  { --row-zone: var(--zone-el); }
+  .results-table .zone-row-rel { --row-zone: var(--zone-rel); }
+
+  .results-table .name-full { display: none; }
+  .results-table .name-short { display: inline; }
+
+  .results-table .cell-points { margin-left: 4px; padding: 0 5px; }
+  .results-table .entry-time { font-size: .66rem; }
+
+  .leaderboard { padding: 14px 14px; }
+  .leaderboard__list { gap: 4px; }
+  .leaderboard__row { font-size: .9rem; }
+  .leaderboard__btn { padding: 6px 10px; gap: 8px; grid-template-columns: 22px 1fr auto; }
 }
 
 /* ---------- Footer ---------- */
@@ -885,6 +923,94 @@ body[data-theme="light"] .results-table .row-answer { color: #15803d; }
 .modal-card .link-btn { display: block; margin: 0 0 18px; }
 .modal-card .btn--ghost { width: 100%; justify-content: center; margin-bottom: 18px; }
 .modal-card__hint { font-size: .78rem; color: var(--text-muted); margin-bottom: 0; }
+
+/* ---------- Points breakdown popup ---------- */
+
+.breakdown-card { position: relative; text-align: left; padding: 26px 20px 22px; }
+.breakdown-card h2 { margin: 0 32px 4px 0; overflow-wrap: anywhere; }
+.breakdown-total {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent-2);
+  margin-bottom: 16px !important;
+}
+body[data-theme="light"] .breakdown-total { color: var(--pl-purple); }
+.breakdown-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.breakdown-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; }
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.breakdown-item.is-hit {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success) 12%, var(--bg-elevated));
+}
+.breakdown-item__text { display: grid; gap: 2px; min-width: 0; }
+.breakdown-item__label { font-weight: 600; font-size: .88rem; color: var(--text-primary); }
+.breakdown-item__pick,
+.breakdown-item__answer { font-size: .8rem; color: var(--text-secondary); overflow-wrap: anywhere; }
+.breakdown-item__answer { color: var(--text-muted); }
+.breakdown-item__pts {
+  flex: none;
+  min-width: 34px;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .85rem;
+  background: var(--border);
+  color: var(--text-muted);
+}
+.breakdown-item.is-hit .breakdown-item__pts { background: var(--success); color: #06210f; }
+
+/* Leaderboard rows and grid names open the popup */
+.leaderboard__btn {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.leaderboard__btn:hover .leaderboard__name { text-decoration: underline; }
+.leaderboard__tip { display: block; font-size: .72rem; font-weight: 500; color: var(--text-muted); font-family: var(--font-body); margin-top: 2px; }
+.entry-name-btn {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline dotted var(--text-muted);
+  text-underline-offset: 3px;
+}
 
 /* ---------- Responsive ---------- */
 
