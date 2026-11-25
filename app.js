@@ -657,6 +657,9 @@ const resultsScroll = document.getElementById('results-scroll');
 const resultsTable = document.getElementById('results-table');
 const resultsSummary = document.getElementById('results-summary');
 const resultsHint = document.getElementById('results-hint');
+const leaderboard = document.getElementById('leaderboard');
+const leaderboardList = document.getElementById('leaderboard-list');
+const leaderboardSettled = document.getElementById('leaderboard-settled');
 
 // Sheet column indexes: 0 = Timestamp, 1 = Season, 2 = Predictor Name,
 // 3..22 = league positions 1-20, 23+ = the bonus categories in order.
@@ -679,7 +682,70 @@ function formatEntryTime(raw) {
   return `${date}, ${time}`;
 }
 
-function renderResultsGrid(rows) {
+// Scoring comes from the server (see scoreAll in Code.gs): `results` lists
+// the settled answers by Sheet column name, and `marks[entry][column]` is
+// the points that entry got for that column, or null if it isn't settled.
+// If the server doesn't send them (older deployment), the grid just shows
+// picks with no marking.
+function buildScoring(data) {
+  const columns = Array.isArray(data.columns) ? data.columns : [];
+  const results = Array.isArray(data.results) ? data.results : [];
+  const marks = Array.isArray(data.marks) ? data.marks : [];
+  const resultByColumn = {};
+  results.forEach((r) => {
+    const col = columns.indexOf(r.category);
+    if (col !== -1) resultByColumn[col] = r;
+  });
+  const totals = marks.map((m) => (m || []).reduce((sum, p) => sum + (Number(p) || 0), 0));
+  return {
+    active: results.length > 0 && marks.length > 0,
+    settledCount: results.length,
+    scoredCount: columns.length ? columns.length - TABLE_START : 0,
+    resultFor: (col) => resultByColumn[col] || null,
+    markFor: (entry, col) => {
+      const m = marks[entry] && marks[entry][col];
+      return m === null || m === undefined ? null : Number(m);
+    },
+    totals,
+  };
+}
+
+function renderLeaderboard(rows, scoring) {
+  if (!scoring.active) {
+    leaderboard.hidden = true;
+    return;
+  }
+  const standings = rows
+    .map((row, i) => ({ name: row[2] || '—', total: scoring.totals[i] || 0 }))
+    .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+
+  leaderboardList.innerHTML = '';
+  standings.forEach((s, i) => {
+    // Joint positions share a rank: 1, 2, 2, 4.
+    s.rank = i > 0 && s.total === standings[i - 1].total ? standings[i - 1].rank : i + 1;
+    const li = document.createElement('li');
+    li.className = 'leaderboard__row';
+    if (s.rank === 1 && s.total > 0) li.classList.add('is-leader');
+
+    const rank = document.createElement('span');
+    rank.className = 'leaderboard__rank';
+    rank.textContent = String(s.rank);
+    const name = document.createElement('span');
+    name.className = 'leaderboard__name';
+    name.textContent = s.name;
+    const pts = document.createElement('span');
+    pts.className = 'leaderboard__pts';
+    pts.textContent = `${s.total} ${s.total === 1 ? 'pt' : 'pts'}`;
+
+    li.append(rank, name, pts);
+    leaderboardList.appendChild(li);
+  });
+
+  leaderboardSettled.textContent = `${scoring.settledCount} of ${scoring.scoredCount} categories settled`;
+  leaderboard.hidden = false;
+}
+
+function renderResultsGrid(rows, scoring) {
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
 
@@ -687,9 +753,16 @@ function renderResultsGrid(rows) {
   corner.textContent = '';
   headRow.appendChild(corner);
 
-  rows.forEach((row) => {
+  rows.forEach((row, i) => {
     const th = document.createElement('th');
     th.textContent = row[2] || '—';
+    if (scoring.active) {
+      const pts = document.createElement('span');
+      pts.className = 'entry-points';
+      const total = scoring.totals[i] || 0;
+      pts.textContent = `${total} ${total === 1 ? 'pt' : 'pts'}`;
+      th.appendChild(pts);
+    }
     const time = formatEntryTime(row[0]);
     if (time) {
       const span = document.createElement('span');
@@ -713,10 +786,19 @@ function renderResultsGrid(rows) {
     tbody.appendChild(tr);
   }
 
-  function addRow(label, valueFor, posNumber) {
+  function addRow(label, col, posNumber) {
     const tr = document.createElement('tr');
     const th = document.createElement('th');
     th.textContent = label;
+    const result = scoring.resultFor(col);
+    if (result) {
+      tr.classList.add('row-settled');
+      const answer = document.createElement('span');
+      answer.className = 'row-answer';
+      answer.textContent = `✓ ${result.answer}`;
+      if (result.notes) answer.title = result.notes;
+      th.appendChild(answer);
+    }
     tr.appendChild(th);
     rows.forEach((row, i) => {
       const td = document.createElement('td');
@@ -726,7 +808,17 @@ function renderResultsGrid(rows) {
         badge.textContent = String(posNumber);
         td.appendChild(badge);
       }
-      td.appendChild(document.createTextNode(valueFor(row, i)));
+      td.appendChild(document.createTextNode(row[col] || '—'));
+      const mark = scoring.markFor(i, col);
+      if (mark !== null) {
+        td.classList.add(mark > 0 ? 'cell-hit' : 'cell-miss');
+        if (mark > 0) {
+          const pts = document.createElement('span');
+          pts.className = 'cell-points';
+          pts.textContent = `+${mark}`;
+          td.appendChild(pts);
+        }
+      }
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -734,12 +826,12 @@ function renderResultsGrid(rows) {
 
   addGroupRow('Final table');
   for (let pos = 1; pos <= 20; pos++) {
-    addRow(`${pos}${ordinalSuffix(pos)}`, (row) => row[TABLE_START + pos - 1] || '—', pos);
+    addRow(`${pos}${ordinalSuffix(pos)}`, TABLE_START + pos - 1, pos);
   }
 
   addGroupRow('Bonus picks');
   BONUS_LABELS.forEach((label, i) => {
-    addRow(label, (row) => row[BONUS_START + i] || '—');
+    addRow(label, BONUS_START + i);
   });
 
   resultsTable.innerHTML = '';
@@ -757,6 +849,7 @@ async function loadResults() {
   resultsState.textContent = 'Loading entries…';
   resultsScroll.hidden = true;
   resultsHint.hidden = true;
+  leaderboard.hidden = true;
 
   try {
     const response = await fetch(CONFIG.SCRIPT_URL, { method: 'GET' });
@@ -776,7 +869,9 @@ async function loadResults() {
       return;
     }
 
-    renderResultsGrid(rows);
+    const scoring = buildScoring(data);
+    renderLeaderboard(rows, scoring);
+    renderResultsGrid(rows, scoring);
     resultsSummary.textContent = `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} · €${rows.length * ENTRY_FEE} pot`;
     resultsState.hidden = true;
     resultsScroll.hidden = false;
