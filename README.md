@@ -168,6 +168,19 @@ Settled rows show the real answer under the category label. Correct picks
 are green with their points, and wrong picks fade back. If the deployed
 Apps Script predates scoring, the grid simply shows unmarked picks.
 
+Tapping a name, in the leaderboard or at the top of the grid, opens a
+popup listing each settled category with their pick, the answer if they
+got it wrong, and the points. With more than seven entries the
+leaderboard shows the top five and a "Show all" button.
+
+On phones (560px wide or less) the grid is compacted to fit three or four
+people across:
+- The category column is narrower and long labels wrap.
+- The position badge is dropped from each cell; a coloured edge on the
+  row label shows the zone instead.
+- Long team names are shortened (`SHORT_TEAM_NAMES` in `app.js`: Man Utd,
+  Spurs, Palace and so on).
+
 ## Customizing
 
 - **Teams**: edit the `TEAMS` and `PROMOTED_TEAMS` arrays at the top of

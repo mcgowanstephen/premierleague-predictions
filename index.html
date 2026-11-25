@@ -30,6 +30,16 @@
   </div>
 </div>
 
+<div id="breakdown-modal" class="modal-overlay" hidden>
+  <div class="modal-card breakdown-card" role="dialog" aria-modal="true" aria-labelledby="breakdown-title">
+    <button type="button" class="breakdown-close" id="breakdown-close" aria-label="Close">&times;</button>
+    <h2 id="breakdown-title"></h2>
+    <p class="breakdown-total" id="breakdown-total"></p>
+    <ul class="breakdown-list" id="breakdown-list"></ul>
+    <p class="modal-card__hint" id="breakdown-pending"></p>
+  </div>
+</div>
+
 <header class="site-header">
   <div class="site-header__inner">
     <div class="brand">
@@ -257,10 +267,11 @@
 
     <section id="leaderboard" class="card leaderboard" hidden>
       <div class="leaderboard__head">
-        <h3>Leaderboard</h3>
+        <h3>Leaderboard <span class="leaderboard__tip">Tap a name for their points</span></h3>
         <span id="leaderboard-settled" class="leaderboard__settled"></span>
       </div>
       <ol id="leaderboard-list" class="leaderboard__list"></ol>
+      <button type="button" id="leaderboard-toggle" class="btn btn--ghost btn--small leaderboard__toggle" aria-controls="leaderboard-list" aria-expanded="false" hidden>Show all</button>
     </section>
 
     <div id="results-scroll" class="results-scroll" hidden>
